@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "419217090661",
+    "firebase_url": "https://qaapp-8a188.firebaseio.com",
+    "project_id": "qaapp-8a188",
+    "storage_bucket": "qaapp-8a188.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:419217090661:android:15b6a8a4ce4ccfac",
+        "android_client_info": {
+          "package_name": "jp.techacademy.kubota.satoru.qa_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "419217090661-4i0h5qprpdqj42r520ph3tupfqm8jhvf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTFIdNDEpnumLrqqxudWzDWpeEuMpEIQQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
