@@ -11,4 +11,63 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="jp.techacademy.kubota.satoru.qa_app.QuestionSendActivity">
 
+    <TextView
+        android:text="タイトル"
+        android:id="@+id/titleText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <EditText
+        android:id="@+id/titleEdit"
+        android:gravity="top"
+        android:inputType="text"
+        android:layout_below="@+id/titleText"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/textBody"
+        android:text="質問内容"
+        android:layout_below="@+id/titleText"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <EditText
+        android:id="@+id/editBody"
+        android:inputType="textMultiLine"
+        android:maxLines="10"
+        android:gravity="top"
+        android:layout_below="@+id/textBody"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/imageText"
+        android:text="添付画像"
+        android:layout_below="@+id/editBody"
+        android:layout_alignParentStart="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_below="@+id/imageText"
+        android:background="#d3d3d3"
+        android:layout_centerHorizontal="true"
+        android:layout_width="100dp"
+        android:layout_height="100dp"/>
+
+    <Button
+        android:text="投稿"
+        android:textColor="@color/colorButtonText"
+        android:background="@drawable/custom_button"
+        android:id="@+id/sendButton"
+        android:layout_below="@+id/imageView"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 </RelativeLayout>
