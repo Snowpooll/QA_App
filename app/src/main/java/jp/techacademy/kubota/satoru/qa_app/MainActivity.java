@@ -17,6 +17,7 @@ import android.util.Base64;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -151,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("genre",mGenre);
                     startActivity(intent);
                 }
+
+
 ;
             }
         });
@@ -209,6 +212,18 @@ public class MainActivity extends AppCompatActivity {
         adapter = new QuestionsListAdapter(this);
         questionArrayList = new ArrayList<Question>();
         adapter.notifyDataSetChanged();
+
+        //list items tapp is  list detail set event listener
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                //pass question instance start question detail screen
+                Intent intent = new Intent(getApplicationContext(),QuestionDetailActivity.class);
+                intent.putExtra("question",questionArrayList.get(position));
+                startActivity(intent);
+
+            }
+        });
     }
 
     @Override
