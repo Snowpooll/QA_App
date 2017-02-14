@@ -42,6 +42,10 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Question> questionArrayList;
     private QuestionsListAdapter adapter;
 
+    //favorite
+    private ArrayList<Favorite> favoriteArrayList;
+    private DatabaseReference favoriteRef;
+
     private ChildEventListener eventListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -121,6 +125,46 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //favorite event listener
+    private ChildEventListener FaveventListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            HashMap map = (HashMap)dataSnapshot.getValue();
+            String favkey = dataSnapshot.getKey();
+            String favoriteId = (String)map.get("favoriteid");
+            Favorite favorite = new Favorite(favkey,favoriteId);
+            favoriteArrayList.add(favorite);
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            HashMap map = (HashMap)dataSnapshot.getValue();
+            String favoriteId = (String)map.get("favoriteId");
+
+            for (int i=0; i< favoriteArrayList.size(); i++){
+                if(favoriteArrayList.get(i).getFavoriteQuestionId().equals(favoriteId)){
+                    favoriteArrayList.remove(i);
+                    return;
+                }
+            }
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -183,6 +227,12 @@ public class MainActivity extends AppCompatActivity {
                     toolbar.setTitle("コンピュータ");
                     mGenre=4;
                 }
+                //favorite add
+                else if(id == R.id.favorite){
+                    Intent intent = new Intent(getApplicationContext(),FavLIstQuestion.class);
+                    intent.putExtra("favoriteList",favoriteArrayList);
+                    startActivity(intent);
+                }
 
                 DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawerlayout);
                 drawer.closeDrawer(GravityCompat.START);
@@ -203,8 +253,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //login judge
+        Menu menu = (Menu)navigationView.getMenu();
+        MenuItem menu_fav = (MenuItem)menu.getItem(4);
+
+        //save login user
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        //if login, show favorite list
+        if(user == null){
+            menu_fav.setVisible(false);
+        }else {
+            menu_fav.setVisible(true);
+        }
+
         //firebase
         databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        //login user favorite listener register
+        if(user !=null){
+            favoriteRef = databaseReference.child(Const.FavoritePath).child(user.getUid());
+            favoriteRef.addChildEventListener(FaveventListener);
+
+        }
+        favoriteArrayList = new ArrayList<Favorite>();
 
 
         //listview preparation
@@ -213,6 +285,10 @@ public class MainActivity extends AppCompatActivity {
         questionArrayList = new ArrayList<Question>();
         adapter.notifyDataSetChanged();
 
+        //login users favorite listener registed
+
+
+
         //list items tapp is  list detail set event listener
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -220,6 +296,21 @@ public class MainActivity extends AppCompatActivity {
                 //pass question instance start question detail screen
                 Intent intent = new Intent(getApplicationContext(),QuestionDetailActivity.class);
                 intent.putExtra("question",questionArrayList.get(position));
+
+                //favorite register send
+                boolean isFavorite = false;
+                String favoriteKey = "";
+                if(favoriteArrayList != null){
+                    for (Favorite favorite: favoriteArrayList){
+                        if(questionArrayList.get(position).getmQuestionUid().equals(favorite.getFavoriteQuestionId())){
+                            isFavorite=true;
+                            favoriteKey = favorite.getFavoriteKey();
+                            break;
+                        }
+                    }
+                }
+                intent.putExtra("favoriteflag",isFavorite);
+                intent.putExtra("favoritekey",favoriteKey);
                 startActivity(intent);
 
             }
@@ -250,5 +341,42 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        //login judge , favorite list is show/hide
+        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_view);
+        Menu menu = (Menu)navigationView.getMenu();
+        MenuItem menu_fav = (MenuItem)menu.getItem(4);
+
+        //login user save
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+
+        //if login ,show favorite list
+        if(user == null){
+            //no login
+            menu_fav.setVisible(false);
+
+            //favorite list clear
+            if(favoriteRef !=null){
+                favoriteRef.removeEventListener(FaveventListener);
+            }
+            favoriteArrayList.clear();
+        }else {
+            //login
+            menu_fav.setVisible(true);
+
+            //favorite list clear & resetting
+            if(favoriteRef !=null){
+                favoriteRef.removeEventListener(FaveventListener);
+            }
+            favoriteArrayList.clear();
+            favoriteRef = databaseReference.child(Const.FavoritePath).child(user.getUid());
+            favoriteRef.addChildEventListener(FaveventListener);
+        }
     }
 }

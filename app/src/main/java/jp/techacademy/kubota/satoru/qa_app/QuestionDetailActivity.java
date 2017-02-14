@@ -1,11 +1,14 @@
 package jp.techacademy.kubota.satoru.qa_app;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.icu.lang.UCharacter;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,14 +20,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.HashMap;
+import java.util.Map;
 
-public class QuestionDetailActivity extends AppCompatActivity {
+public class QuestionDetailActivity extends AppCompatActivity implements View.OnClickListener,DatabaseReference.CompletionListener{
 
     private ListView listView;
     private Question mQuestion;
     private QuestionDetailListAdapter adapter;
 
     private DatabaseReference AnswerRef;
+
+    //favorite add
+    private boolean isFavorite;
+    private String favoritekey;
+    private ProgressDialog progressDialog;
+    private DatabaseReference databaseReference;
+    private FirebaseUser firebaseUser;
 
     private ChildEventListener eventListener = new ChildEventListener() {
         @Override
@@ -79,6 +90,10 @@ public class QuestionDetailActivity extends AppCompatActivity {
         Bundle extrals = getIntent().getExtras();
         mQuestion = (Question)extrals.get("question");
 
+        //favorite save
+        isFavorite = extrals.getBoolean("favoriteflag");
+        favoritekey = extrals.getString("favoritekey");
+
         setTitle(mQuestion.getmTitle());
 
 
@@ -87,6 +102,31 @@ public class QuestionDetailActivity extends AppCompatActivity {
         adapter = new QuestionDetailListAdapter(this,mQuestion);
         listView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
+
+        //favorite
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("");
+
+        Button favoriteButton = (Button)findViewById(R.id.favorite);
+
+        //firebase
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if(firebaseUser == null){
+            favoriteButton.setVisibility(View.INVISIBLE);
+        }else {
+            if(isFavorite){
+                favoriteButton.setBackgroundResource(R.drawable.btn_pressed);
+                favoriteButton.setText("お気に入り解除");
+            }else {
+                favoriteButton.setBackgroundResource(R.drawable.btn);
+                favoriteButton.setText("お気に入り登録");
+            }
+        }
+        favoriteButton.setOnClickListener(this);
+        favoriteButton.setVisibility(View.VISIBLE);
+
 
         FloatingActionButton fab  =( FloatingActionButton)findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -113,5 +153,63 @@ public class QuestionDetailActivity extends AppCompatActivity {
         AnswerRef = databaseReference.child(Const.ContentsPath).child(String.valueOf(mQuestion.getmGenre())).child(mQuestion.getmQuestionUid())
                 .child(Const.AnswersPath);
         AnswerRef.addChildEventListener(eventListener);
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(firebaseUser != null){
+            if(isFavorite){
+                isFavorite = false;
+                Button favoriteButton = (Button)view.findViewById(R.id.favorite);
+                favoriteButton.setBackgroundResource(R.drawable.btn);
+                favoriteButton.setText("お気に入り登録");
+
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+                if(firebaseUser !=null){
+                    DatabaseReference favoriteRef  = databaseReference.child(Const.FavoritePath)
+                            .child(firebaseUser.getUid())
+                            .child(favoritekey);
+                    favoriteRef.removeValue(this);
+                    progressDialog.setMessage("お気に入りから解除中");
+                    progressDialog.show();
+                }
+
+            }else {
+                isFavorite=true;
+                Button favoriteButton = (Button)view.findViewById(R.id.favorite);
+                favoriteButton.setBackgroundResource(R.drawable.btn_pressed);
+                favoriteButton.setText("お気に入りから解除");
+
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+                if(firebaseUser !=null){
+                    DatabaseReference favoriteRef = databaseReference.child(Const.FavoritePath).child(firebaseUser.getUid());
+                    Map<String,String> data = new HashMap<String, String>();
+
+                    data.put("favoritequestionid",mQuestion.getmQuestionUid());
+                    favoriteRef.push().setValue(data,this);
+
+                    progressDialog.setMessage("お気に入り登録中");
+                    progressDialog.show();
+                }
+            }
+        }
+
+    }
+
+    @Override
+    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+        progressDialog.dismiss();
+
+        if(databaseError == null){
+
+        }else {
+            if(isFavorite){
+                Snackbar.make(findViewById(android.R.id.content),"お気に入り解除失敗",Snackbar.LENGTH_LONG).show();
+            }else {
+                Snackbar.make(findViewById(android.R.id.content),"お気に入り登録失敗",Snackbar.LENGTH_LONG).show();
+            }
+        }
     }
 }
